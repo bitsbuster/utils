@@ -19,7 +19,7 @@ const (
 	JSON
 )
 
-var Format LogFormat = RAW
+var format LogFormat = RAW
 
 type LogLevelValue uint8
 
@@ -54,8 +54,23 @@ var Environment string
 
 func init() {
 	SetFlags(LstdFlags | Lmicroseconds)
-
 }
+
+// SetFormat changes the log format to the given format.
+//
+// If the format is JSON, the logger will not include the date and time
+// in the log entry. If the format is RAW, the logger will include the
+// date and time in the log entry.
+func SetFormat(f LogFormat) {
+	if f == JSON {
+		SetFlags(LstdFlags &^ (Ldate | Ltime))
+		format = f
+	} else {
+		SetFlags(LstdFlags | Lmicroseconds)
+		format = RAW
+	}
+}
+
 func (p *LogLevelValue) FromString(s string) {
 	for i, v := range levelNames {
 		if strings.EqualFold(v, s) {
@@ -167,7 +182,7 @@ func _logF(ctx *context.Context, pc uintptr, ok bool, level LogLevelValue, str s
 	logEntryBytes, _ := json.Marshal(l)
 
 	if level >= currentLogLevel {
-		if Format == RAW {
+		if format == RAW {
 			printf(Colourize(fmt.Sprintf("%-5s [%s] %s", levelNames[level], name, str), color), v...)
 
 		} else {
@@ -209,7 +224,7 @@ func _logN(ctx *context.Context, pc uintptr, ok bool, level LogLevelValue, curre
 
 	if level >= currentLogLevel {
 		var kk []interface{}
-		if Format == JSON {
+		if format == JSON {
 			l := &LogEntry{
 				Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
 				Level:     levelNames[level],
