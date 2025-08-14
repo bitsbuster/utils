@@ -8,7 +8,7 @@ import (
 
 // Meta contains additional metadatadata
 type Meta struct {
-	Timestamp  string      `json:"timestamp"`
+	Timestamp  int64       `json:"timestamp"`
 	RequestID  string      `json:"requestId,omitempty"`
 	Pagination *Pagination `json:"pagination,omitempty"`
 }
@@ -38,8 +38,8 @@ func SendResponse(w http.ResponseWriter, statusCode int, success bool, message s
 		Data:    data,
 		Errors:  errors,
 		Meta: Meta{
-			Timestamp:  time.Now().UTC().Format(time.RFC3339),
-			RequestID:  "", // Puedes integrarlo con un middleware que genere IDs
+			Timestamp:  time.Now().UnixMilli(),
+			RequestID:  "",
 			Pagination: pagination,
 		},
 	}
