@@ -171,9 +171,9 @@ func _logF(ctx *context.Context, pc uintptr, ok bool, level LogLevelValue, str s
 			printf(Colourize(fmt.Sprintf("%-5s [%s] %s", levelNames[level], name, str), color), v...)
 
 		} else {
-			kk := []interface{}{fmt.Sprintf("%-5s ", levelNames[level]), string(logEntryBytes)}
+			// kk := []interface{}{string(logEntryBytes)}
 
-			println(color, kk...)
+			std.Output(2, string(logEntryBytes))
 
 		}
 	}
@@ -187,6 +187,8 @@ func logN(ctx *context.Context, level LogLevelValue, v ...any) {
 func _logN(ctx *context.Context, pc uintptr, ok bool, level LogLevelValue, currentLogLevel LogLevelValue, v ...any) {
 	var color int
 	var name string
+	var user types.SqlUuid
+	var userOk bool
 	if ok {
 		name = _funcName(pc)
 	}
@@ -215,17 +217,24 @@ func _logN(ctx *context.Context, pc uintptr, ok bool, level LogLevelValue, curre
 				Message:   fmt.Sprint(v...),
 				Env:       Environment,
 			}
+			if ctx != nil {
+				if user, userOk = (*ctx).Value(contextkeys.CtxKeyUser).(types.SqlUuid); userOk {
+					l.User = user.String()
+				}
+
+			}
 			logEntryBytes, _ := json.Marshal(l)
 
-			kk = []interface{}{fmt.Sprintf("%-5s ", levelNames[level]), string(logEntryBytes)}
+			// kk = []interface{}{fmt.Sprintf("%-5s ", levelNames[level]), string(logEntryBytes)}
+			std.Output(2, string(logEntryBytes))
 
 		} else {
 			kk = []interface{}{fmt.Sprintf("%-5s ", levelNames[level]), fmt.Sprintf("[%s] ", name), v}
+			println(color, kk...)
 
 			// kk = append(kk, v...)
 		}
 
-		println(color, kk...)
 	}
 }
 func Println(ctx *context.Context, v ...any) {
