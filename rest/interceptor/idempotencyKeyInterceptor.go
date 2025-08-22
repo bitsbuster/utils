@@ -38,7 +38,7 @@ func IdempotencyKeyInterceptor(validateIdempotency ValidateIdempotency, cacheRes
 
 			idempotencyKey := r.Header.Get(HEADER_IDEMPOTENCY_KEY)
 
-			if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodGet {
+			if r.Method == http.MethodPost || r.Method == http.MethodPut {
 				if _, err := uuid.Parse(idempotencyKey); err != nil {
 					log.Errorln(&ctx, "Invalid idempotency key")
 					w.WriteHeader(http.StatusBadRequest)
