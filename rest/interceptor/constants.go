@@ -16,6 +16,7 @@ const (
 	HEADER_PLAN_IPFS_STORAGE    string = "Plan-Storage"
 	HEADER_IPFS_STORAGE         string = "Ipfs-Storage"
 	HEADER_JTI                  string = "jti"
+	HEADER_IDEMPOTENCY_KEY      string = "fv-idempotency-key"
 )
 const (
 	INSUFFICIENT_SCOPE_ERROR       string = "INSUFFICIENT_SCOPE_ERROR"
