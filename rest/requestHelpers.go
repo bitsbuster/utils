@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/bitsbuster/utils/decoder"
-	"github.com/bitsbuster/utils/errors"
-	"github.com/bitsbuster/utils/log"
+	"github.com/bitsbuster/utils/v2/decoder"
+	"github.com/bitsbuster/utils/v2/errors"
+	"github.com/bitsbuster/utils/v2/log"
 )
 
 type FilterParamsDTO struct {

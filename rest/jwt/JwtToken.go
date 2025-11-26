@@ -12,9 +12,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/bitsbuster/utils/database"
-	"github.com/bitsbuster/utils/log"
-	"github.com/bitsbuster/utils/types"
+	"github.com/bitsbuster/utils/v2/database"
+	"github.com/bitsbuster/utils/v2/log"
+	"github.com/bitsbuster/utils/v2/types"
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/segmentio/ksuid"
 )

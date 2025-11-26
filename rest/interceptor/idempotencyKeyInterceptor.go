@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/bitsbuster/utils/log"
-	"github.com/bitsbuster/utils/rest"
+	"github.com/bitsbuster/utils/v2/log"
+	"github.com/bitsbuster/utils/v2/rest"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )

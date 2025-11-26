@@ -17,7 +17,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/bitsbuster/utils/log"
+	"github.com/bitsbuster/utils/v2/log"
 	"golang.org/x/crypto/pbkdf2"
 )
 

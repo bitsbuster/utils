@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bitsbuster/utils/log"
+	"github.com/bitsbuster/utils/v2/log"
 )
 
 func TestDebug(t *testing.T) {

@@ -9,9 +9,9 @@ import (
 	"encoding/pem"
 	"os"
 
-	"github.com/bitsbuster/utils/errors"
-	"github.com/bitsbuster/utils/log"
-	"github.com/bitsbuster/utils/pointer"
+	"github.com/bitsbuster/utils/v2/errors"
+	"github.com/bitsbuster/utils/v2/log"
+	"github.com/bitsbuster/utils/v2/pointer"
 )
 
 var (

@@ -3,8 +3,8 @@ package interceptor
 import (
 	"net/http"
 
-	"github.com/bitsbuster/utils/log"
-	"github.com/bitsbuster/utils/rest/jwt"
+	"github.com/bitsbuster/utils/v2/log"
+	"github.com/bitsbuster/utils/v2/rest/jwt"
 )
 
 type ErrorDTO struct {

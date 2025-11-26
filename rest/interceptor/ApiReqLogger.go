@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bitsbuster/utils/log"
-	"github.com/bitsbuster/utils/types"
+	"github.com/bitsbuster/utils/v2/log"
+	"github.com/bitsbuster/utils/v2/types"
 	"github.com/gorilla/mux"
 )
 

@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"unicode"
 
-	"github.com/bitsbuster/utils/log"
+	"github.com/bitsbuster/utils/v2/log"
 	"golang.org/x/crypto/bcrypt"
 )
 

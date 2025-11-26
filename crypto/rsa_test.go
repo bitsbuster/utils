@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	utils "github.com/bitsbuster/utils/crypto"
+	utils "github.com/bitsbuster/utils/v2/crypto"
 )
 
 func TestGenerateCryptoRSA(t *testing.T) {

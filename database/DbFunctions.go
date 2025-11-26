@@ -3,8 +3,8 @@ package database
 import (
 	"database/sql"
 
-	"github.com/bitsbuster/utils/errors"
-	"github.com/bitsbuster/utils/log"
+	"github.com/bitsbuster/utils/v2/errors"
+	"github.com/bitsbuster/utils/v2/log"
 )
 
 // Manages the possible error coming for an update execution and returns the database error if exists.

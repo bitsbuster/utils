@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bitsbuster/utils/types"
+	"github.com/bitsbuster/utils/v2/types"
 )
 
 func TestNew(t *testing.T) {

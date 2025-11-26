@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bitsbuster/utils/contextkeys"
-	"github.com/bitsbuster/utils/types"
+	"github.com/bitsbuster/utils/v2/contextkeys"
+	"github.com/bitsbuster/utils/v2/types"
 )
 
 type LogFormat uint8

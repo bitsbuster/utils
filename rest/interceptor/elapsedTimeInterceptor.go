@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/bitsbuster/utils/contextkeys"
-	"github.com/bitsbuster/utils/log"
+	"github.com/bitsbuster/utils/v2/contextkeys"
+	"github.com/bitsbuster/utils/v2/log"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )

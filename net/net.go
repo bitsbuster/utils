@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bitsbuster/utils/log"
+	"github.com/bitsbuster/utils/v2/log"
 )
 
 type IPV string

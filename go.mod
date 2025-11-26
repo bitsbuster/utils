@@ -1,6 +1,6 @@
-module github.com/bitsbuster/utils
+module github.com/bitsbuster/utils/v2
 
-go 1.22.4
+go 1.24
 
 require (
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
@@ -8,6 +8,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
+	github.com/lib/pq v1.10.9
 	github.com/segmentio/ksuid v1.0.4
 	golang.org/x/crypto v0.28.0
 	golang.org/x/text v0.19.0

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/bitsbuster/utils/log"
+	"github.com/bitsbuster/utils/v2/log"
 )
 
 // Recoverer is an interceptor that recovers from panics, logs the panic (and the stacktrace),

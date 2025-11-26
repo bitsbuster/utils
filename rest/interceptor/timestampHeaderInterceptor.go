@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/bitsbuster/utils/log"
+	"github.com/bitsbuster/utils/v2/log"
 )
 
 func TimestampHeaderInterceptor() MiddlewareInterceptor {
