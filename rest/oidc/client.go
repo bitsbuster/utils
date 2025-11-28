@@ -13,15 +13,29 @@ import (
     "time"
 
 	"github.com/bitsbuster/utils/v2/log"
+    "regexp"
 )
 
 type Config struct {
-    Issuers       []string
+    Issuers       []string // Puede ser regexp
     ClientID      string
     ClientSecret  string
     Timeout       time.Duration
     CacheTTL      time.Duration
     LeewaySeconds int64
+}
+
+// compileIssuerRegexps compila los patrones de issuer a regexp
+func compileIssuerRegexps(issuers []string) ([]*regexp.Regexp, error) {
+    regexps := make([]*regexp.Regexp, 0, len(issuers))
+    for _, pat := range issuers {
+        re, err := regexp.Compile(pat)
+        if err != nil {
+            return nil, err
+        }
+        regexps = append(regexps, re)
+    }
+    return regexps, nil
 }
 
 type Endpoints struct {
@@ -36,6 +50,7 @@ type Client struct {
     jwksKids  map[string]map[string]struct{}
     kidsAt    map[string]time.Time
     mu        sync.RWMutex
+    issuerRegexps []*regexp.Regexp
 }
 
 type IntrospectionResult struct {
@@ -57,40 +72,17 @@ func NewClient(cfg Config) (*Client, error) {
     if cfg.LeewaySeconds == 0 {
         cfg.LeewaySeconds = 60
     }
+    issuerRegexps, err := compileIssuerRegexps(cfg.Issuers)
+    if err != nil {
+        return nil, err
+    }
     c := &Client{
         cfg:       cfg,
         http:      &http.Client{Timeout: cfg.Timeout},
         endpoints: make(map[string]Endpoints, len(cfg.Issuers)),
         jwksKids:  make(map[string]map[string]struct{}, len(cfg.Issuers)),
         kidsAt:    make(map[string]time.Time, len(cfg.Issuers)),
-    }
-    for _, raw := range cfg.Issuers {
-        iss := normalizeIssuer(raw)
-        discURL := iss + "/.well-known/openid-configuration"
-        resp, err := c.http.Get(discURL)
-        if err != nil {
-            return nil, fmt.Errorf("discovery %s: %w", iss, err)
-        }
-        if resp.StatusCode != http.StatusOK {
-            resp.Body.Close()
-			log.Errorf(nil, "discovery %s status %d", iss, resp.StatusCode)
-            return nil, fmt.Errorf("discovery %s status %d", iss, resp.StatusCode)
-        }
-        var disc struct {
-            IntrospectionEndpoint string `json:"introspection_endpoint"`
-            JWKSUri               string `json:"jwks_uri"`
-        }
-        if err := json.NewDecoder(resp.Body).Decode(&disc); err != nil {
-            resp.Body.Close()
-			log.Errorf(nil, "discovery decode %s: %v", iss, err)
-            return nil, fmt.Errorf("discovery decode %s: %w", iss, err)
-        }
-        resp.Body.Close()
-        if disc.IntrospectionEndpoint == "" || disc.JWKSUri == "" {
-			log.Errorf(nil, "discovery endpoint error for %s", iss)
-            return nil, fmt.Errorf("discovery endpoint error for %s", iss)
-        }
-        c.endpoints[iss] = Endpoints{Introspection: disc.IntrospectionEndpoint, JWKS: disc.JWKSUri}
+        issuerRegexps: issuerRegexps,
     }
     return c, nil
 }
@@ -104,9 +96,9 @@ func (c *Client) Introspect(token string) (*IntrospectionResult, error) {
 		log.Errorf(nil, "invalid issuer: %v", err)
         return nil, err
     }
-    ep, ok := c.endpoints[iss]
-    if !ok {
-		log.Errorf(nil, "issuer without endpoints: %s", iss)
+    ep, err := c.getEndpointsForIssuer(iss)
+    if err != nil {
+        log.Errorf(nil, "issuer without endpoints: %s", iss)
         return nil, fmt.Errorf("issuer without endpoints: %s", iss)
     }
     form := url.Values{}
@@ -148,21 +140,21 @@ func (c *Client) Introspect(token string) (*IntrospectionResult, error) {
     return &IntrospectionResult{Claims: body, Scopes: scopes}, nil
 }
 
-// ValidateIssuer checks if the token's issuer is allowed.
+// ValidateIssuer verifies that the token's issuer matches allowed patterns.
 func (c *Client) ValidateIssuer(token string) error {
     iss, err := c.extractIssuer(token)
     if err != nil {
         return err
     }
-    c.mu.RLock()
-    _, ok := c.endpoints[iss]
-    c.mu.RUnlock()
-    if !ok {
-		log.Errorf(nil, "issuer not allowed: %s", iss)
-        return fmt.Errorf("issuer not allowed: %s", iss)
+    for _, re := range c.issuerRegexps {
+        if re.MatchString(iss) {
+            return nil
+        }
     }
-    return nil
+    log.Errorf(nil, "issuer not allowed: %s", iss)
+    return fmt.Errorf("issuer not allowed: %s", iss)
 }
+
 // CheckExpiration checks if the token is expired considering leeway.
 func (c *Client) CheckExpiration(token string, leewaySeconds int64) error {
     claims, err := c.DecodeClaims(token)
@@ -228,9 +220,9 @@ func (c *Client) ensureJWKSLoaded(issuer string) error {
 		log.Errorf(nil, "using cached JWKS for %s", issuer)
         return nil
     }
-    ep, ok := c.endpoints[issuer]
-    if !ok {
-		log.Errorf(nil, "issuer without endpoints: %s", issuer)
+    ep, err := c.getEndpointsForIssuer(issuer)
+    if err != nil {
+        log.Errorf(nil, "issuer without endpoints: %s", issuer)
         return fmt.Errorf("issuer without endpoints: %s", issuer)
     }
     resp, err := c.http.Get(ep.JWKS)
@@ -360,4 +352,39 @@ func tokenToParts(token string) ([]string, error) {
 		return nil, errors.New("invalid JWT format")
 	}
 	return parts, nil
+}
+
+// getEndpointsForIssuer does lazy discovery for the given issuer if not already cached.
+func (c *Client) getEndpointsForIssuer(iss string) (Endpoints, error) {
+    iss = normalizeIssuer(iss)
+    c.mu.RLock()
+    ep, ok := c.endpoints[iss]
+    c.mu.RUnlock()
+    if ok {
+        return ep, nil
+    }
+    // Not cached, do discovery
+    discURL := iss + "/.well-known/openid-configuration"
+    resp, err := c.http.Get(discURL)
+    if err != nil {
+        return Endpoints{}, fmt.Errorf("discovery %s: %w", iss, err)
+    }
+    defer resp.Body.Close()
+    if resp.StatusCode != http.StatusOK {
+        return Endpoints{}, fmt.Errorf("discovery %s status %d", iss, resp.StatusCode)
+    }
+    var disc struct {
+        IntrospectionEndpoint string `json:"introspection_endpoint"`
+        JWKSUri               string `json:"jwks_uri"`
+    }
+    if err := json.NewDecoder(resp.Body).Decode(&disc); err != nil {
+        return Endpoints{}, fmt.Errorf("discovery decode %s: %w", iss, err)
+    }
+    if disc.IntrospectionEndpoint == "" || disc.JWKSUri == "" {
+        return Endpoints{}, fmt.Errorf("discovery endpoint error for %s", iss)
+    }
+    c.mu.Lock()
+    c.endpoints[iss] = Endpoints{Introspection: disc.IntrospectionEndpoint, JWKS: disc.JWKSUri}
+    c.mu.Unlock()
+    return c.endpoints[iss], nil
 }
