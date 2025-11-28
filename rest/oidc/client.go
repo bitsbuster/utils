@@ -17,7 +17,7 @@ import (
 )
 
 type Config struct {
-    Issuers       []string // Puede ser regexp
+    Issuers       []string // Can be a regexp pattern
     ClientID      string
     ClientSecret  string
     Timeout       time.Duration
@@ -25,7 +25,7 @@ type Config struct {
     LeewaySeconds int64
 }
 
-// compileIssuerRegexps compila los patrones de issuer a regexp
+// compileIssuerRegexps compiles issuer patterns to regexps
 func compileIssuerRegexps(issuers []string) ([]*regexp.Regexp, error) {
     regexps := make([]*regexp.Regexp, 0, len(issuers))
     for _, pat := range issuers {
@@ -58,10 +58,10 @@ type IntrospectionResult struct {
     Scopes []string
 }
 
-// NewClient creates a new OIDC client with the given configuration.
-func NewClient(cfg Config) (*Client, error) {
+// Creates a new OIDC client with the given configuration.
+func OidcClient(cfg Config) (*Client, error) {
     if len(cfg.Issuers) == 0 {
-        return nil, errors.New("Issuers required")
+        return nil, errors.New("One issuer is almost required")
     }
     if cfg.Timeout == 0 {
         cfg.Timeout = 3 * time.Second
@@ -86,8 +86,12 @@ func NewClient(cfg Config) (*Client, error) {
     }
     return c, nil
 }
-// Introspect performs token introspection and returns the result.
+// Introspect performs token introspection and returns the result. (Client_ID and Client_Secret must be set in Config)
 func (c *Client) Introspect(token string) (*IntrospectionResult, error) {
+	if c.cfg.ClientID == "" || c.cfg.ClientSecret == "" {
+		log.Errorf(nil, "ClientID/ClientSecret required")
+        return nil, errors.New("ClientID/ClientSecret not set in Config")
+    }
     iss, err := c.extractIssuer(token)
     if err != nil {
         return nil, err
