@@ -1,8 +1,10 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -74,4 +76,32 @@ func ReturnResponseToClientWithStatus(w http.ResponseWriter, value interface{}, 
 		fmt.Fprint(w, string(b))
 	}
 
+}
+
+func GenerateStreamResponse(w http.ResponseWriter, r *http.Response, ctx context.Context, contentType string) error {
+	w.Header().Set("Content-Type", contentType+"; charset=utf-8")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	w.WriteHeader(http.StatusOK)
+
+	buf := make([]byte, 512)
+	for {
+		n, err := r.Body.Read(buf)
+		if n > 0 {
+			if _, writeErr := w.Write(buf[:n]); writeErr != nil {
+				log.Errorf(&ctx, "Error writing to stream: %+v", writeErr)
+				break
+			}
+			w.(http.Flusher).Flush()
+		}
+		if err != nil {
+			if err == io.EOF {
+				log.Infof(&ctx, "End of stream")
+				break
+			}
+			log.Errorf(&ctx, "Error reading stream: %+v", err)
+			http.Error(w, "Error reading stream", http.StatusInternalServerError)
+			return err
+		}
+	}
+	return nil
 }

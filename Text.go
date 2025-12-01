@@ -3,6 +3,7 @@ package commons
 import (
 	"strings"
 	"unicode"
+	"regexp"
 
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
@@ -60,4 +61,25 @@ func ReverseString(s string) string {
 		runes[i], runes[j] = runes[j], runes[i]
 	}
 	return string(runes)
+}
+
+
+func CleanStringUnicode(input string) string {
+	// Replace all newline characters with a single space
+	clean := strings.ReplaceAll(input, "\n", " ")
+	// Replace all carriage return characters with a single space
+	clean = strings.ReplaceAll(clean, "\r", " ")
+	// replace all tab characters with a single space
+	clean = strings.ReplaceAll(clean, "\t", " ")
+
+	// Use a regular expression to replace all non-unicode characters
+	// reg := regexp.MustCompile(`[^\p{L}\p{N} ]+`)
+	reg := regexp.MustCompile(`[^\p{L}\p{N}.,;:!?¡(){}\[\]'\-_/@#%+=*/\\|^~<> ]+`)
+	clean = reg.ReplaceAllString(clean, "")
+
+	// Use a regular expression to replace all whitespace characters with a single space
+	clean = regexp.MustCompile(`\s+`).ReplaceAllString(clean, " ")
+
+	// Remove all trailing whitespace characters
+	return strings.TrimSpace(clean)
 }
