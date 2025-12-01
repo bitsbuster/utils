@@ -1,9 +1,9 @@
-package commons
+package utils
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
-	"regexp"
 
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
@@ -62,7 +62,6 @@ func ReverseString(s string) string {
 	}
 	return string(runes)
 }
-
 
 func CleanStringUnicode(input string) string {
 	// Replace all newline characters with a single space

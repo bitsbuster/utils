@@ -1,4 +1,4 @@
-package commons
+package utils
 
 // Checks if an string array contains a given string and returns true if it is present
 func ArrayContainsString(arr *[]string, str string) bool {
